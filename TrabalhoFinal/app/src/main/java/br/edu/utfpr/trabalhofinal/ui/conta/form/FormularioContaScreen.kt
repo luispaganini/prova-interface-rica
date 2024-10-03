@@ -50,9 +50,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -62,6 +65,7 @@ import br.edu.utfpr.trabalhofinal.data.TipoContaEnum
 import br.edu.utfpr.trabalhofinal.ui.theme.TrabalhoFinalTheme
 import br.edu.utfpr.trabalhofinal.ui.utils.composables.Carregando
 import br.edu.utfpr.trabalhofinal.ui.utils.composables.ErroAoCarregar
+import java.text.NumberFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -300,7 +304,8 @@ private fun FormContent(
                 titulo = stringResource(R.string.valor),
                 campoFormulario = valor,
                 onValorAlterado = onValorAlterado,
-                enabled = !processando
+                enabled = !processando,
+                keyboardType = KeyboardType.Number,
             )
         }
 
@@ -339,6 +344,7 @@ private fun FormContent(
                 label = stringResource(R.string.paga)
             )
         }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -352,7 +358,7 @@ private fun FormContent(
             FormRadioButton(
                 modifier = checkOptionsModifier,
                 value = TipoContaEnum.DESPESA,
-                groupValue = TipoContaEnum.valueOf(tipo.valor.ifEmpty { TipoContaEnum.DESPESA.toString() }),
+                groupValue = TipoContaEnum.valueOf(tipo.valor),
                 onValueChanged = { onTipoAlterado(it.name) },
                 enabled = !processando,
                 label = stringResource(R.string.despesa)
@@ -360,7 +366,7 @@ private fun FormContent(
             FormRadioButton(
                 modifier = checkOptionsModifier,
                 value = TipoContaEnum.RECEITA,
-                groupValue = TipoContaEnum.valueOf(tipo.valor.ifEmpty { TipoContaEnum.DESPESA.toString() }),
+                groupValue = TipoContaEnum.valueOf(tipo.valor),
                 onValueChanged = { onTipoAlterado(it.name) },
                 enabled = !processando,
                 label = stringResource(R.string.receita)
@@ -383,7 +389,7 @@ private fun FormCheckbox(
     ) {
         Checkbox(
             checked = checked,
-            onCheckedChange = onCheckChanged,
+            onCheckedChange = { onCheckChanged(!checked) },
             enabled = enabled
         )
         Text(label)
@@ -424,7 +430,7 @@ fun FormDatePicker(
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = LocalDate.now()
+        initialSelectedDateMillis = LocalDate.parse(campoFormulario.valor)
             .atStartOfDay(ZoneOffset.UTC)
             .toInstant()
             .toEpochMilli()
@@ -432,6 +438,7 @@ fun FormDatePicker(
 
     Column(
         modifier = modifier,
+
     ) {
         OutlinedTextField(
             modifier = Modifier

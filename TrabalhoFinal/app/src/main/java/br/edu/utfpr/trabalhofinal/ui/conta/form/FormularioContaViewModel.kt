@@ -1,4 +1,5 @@
 package br.edu.utfpr.trabalhofinal.ui.conta.form
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,6 +11,7 @@ import br.edu.utfpr.trabalhofinal.data.TipoContaEnum
 import br.edu.utfpr.trabalhofinal.ui.Arguments
 import java.math.BigDecimal
 import java.time.LocalDate
+
 class FormularioContaViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -18,11 +20,13 @@ class FormularioContaViewModel(
         ?.toIntOrNull() ?: 0
     var state: FormularioContaState by mutableStateOf(FormularioContaState(idConta = idConta))
         private set
+
     init {
         if (state.idConta > 0) {
             carregarConta()
         }
     }
+
     fun carregarConta() {
         state = state.copy(
             carregando = true,
@@ -46,6 +50,7 @@ class FormularioContaViewModel(
             )
         }
     }
+
     fun onDescricaoAlterada(novaDescricao: String) {
         if (state.descricao.valor != novaDescricao) {
             state = state.copy(
@@ -56,11 +61,29 @@ class FormularioContaViewModel(
             )
         }
     }
+
     private fun validarDescricao(descricao: String): Int = if (descricao.isBlank()) {
         R.string.descricao_obrigatoria
     } else {
         0
     }
+
+    private fun validarValor(valor: String): Int {
+        if (valor.isBlank()) {
+            return R.string.valor_obrigatorio
+        }
+
+        return try {
+            BigDecimal(valor)
+            if (BigDecimal(valor) <= BigDecimal.ZERO) {
+                R.string.valor_deve_ser_positivo
+            } else
+                0
+        } catch (_: NumberFormatException) {
+            return R.string.valor_invalido
+        }
+    }
+
     fun onDataAlterada(novaData: String) {
         if (state.data.valor != novaData) {
             state = state.copy(
@@ -70,6 +93,7 @@ class FormularioContaViewModel(
             )
         }
     }
+
     fun onValorAlterado(novoValor: String) {
         if (state.valor.valor != novoValor) {
             state = state.copy(
@@ -79,6 +103,7 @@ class FormularioContaViewModel(
             )
         }
     }
+
     fun onStatusPagamentoAlterado(novoStatusPagamento: String) {
         if (state.paga.valor != novoStatusPagamento) {
             state = state.copy(
@@ -88,6 +113,7 @@ class FormularioContaViewModel(
             )
         }
     }
+
     fun onTipoAlterado(novoTipo: String) {
         if (state.tipo.valor != novoTipo) {
             state = state.copy(
@@ -97,6 +123,7 @@ class FormularioContaViewModel(
             )
         }
     }
+
     fun salvarConta() {
         if (formularioValido()) {
             state = state.copy(
@@ -116,20 +143,27 @@ class FormularioContaViewModel(
             )
         }
     }
+
     private fun formularioValido(): Boolean {
         state = state.copy(
             descricao = state.descricao.copy(
                 codigoMensagemErro = validarDescricao(state.descricao.valor)
+            ),
+            valor = state.valor.copy(
+                codigoMensagemErro = validarValor(state.valor.valor)
             )
         )
         return state.formularioValido
     }
+
     fun mostrarDialogConfirmacao() {
         state = state.copy(mostrarDialogConfirmacao = true)
     }
+
     fun ocultarDialogConfirmacao() {
         state = state.copy(mostrarDialogConfirmacao = false)
     }
+
     fun removerConta() {
         state = state.copy(
             excluindo = true,
@@ -140,6 +174,7 @@ class FormularioContaViewModel(
             contaPersistidaOuRemovida = true
         )
     }
+
     fun onMensagemExibida() {
         state = state.copy(codigoMensagem = 0)
     }
